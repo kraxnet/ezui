@@ -1,0 +1,44 @@
+name: Generate RPI Image
+
+on:
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-rpi-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run pi-gen-action
+        uses: usimd/pi-gen-action@v1.10.0
+        id: build
+        with:
+          image-name: ezui
+          hostname: ezui
+          username: ezui
+          password: ezui
+          compression: gz
+          compression-level: 6
+          disable-first-boot-user-rename: 1
+          enable-ssh: 1
+          keyboard-keymap: us
+          locale: en_US.UTF-8
+          pi-gen-version: arm64
+          release: bookworm
+          stage-list: stage0 stage1 stage2 ./stage-ezui
+          timezone: Europe/Prague
+          verbose-output: true
+
+      - name: Release image
+        uses: softprops/action-gh-release@v2
+        with:
+          name: first
+          files: ${{ steps.build.outputs.image-path }}
+
